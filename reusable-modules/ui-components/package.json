@@ -1,0 +1,23 @@
+{
+  "name": "@tracking-crm/ui-components",
+  "version": "1.0.0",
+  "description": "Reusable UI components for the Tracking CRM Framework.",
+  "main": "./index.ts",
+  "types": "./index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ui",
+    "components",
+    "react",
+    "white-label",
+    "reusable"
+  ],
+  "author": "Your Name/Organization",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  }
+}

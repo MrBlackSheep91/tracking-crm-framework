@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Medición de rendimiento: Marcar tiempo de inicio
+      window.perfStartTime = performance.now();
+      // Registrar si es primera visita o desde caché
+      window.isFirstVisit = !sessionStorage.getItem('visited');
+      sessionStorage.setItem('visited', 'true');
+    </script>
+    <title>8 Recetas Naturales para Perros - Transforma su Salud en 30 Días</title>
+    <meta name="description" content="Descubre recetas naturales que transformarán la salud de tu Canino en 30 días. Guía paso a paso para dueños ocupados. ¡Obtén tu lista gratuita ahora!" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Recetas Naturales para Caninos Saludables - Transforma su Salud en 30 Días" />
+    <meta property="og:description" content="Guía paso a paso para dueños ocupados que quieren lo mejor para su mascota sin complicaciones" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://nat-pets.com" />
+    <meta property="og:image" content="https://nat-pets.com/banner-1.png" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Recetas Naturales para Caninos Saludables - Transforma su Salud en 30 Días" />
+    <meta name="twitter:description" content="Guía paso a paso para dueños ocupados que quieren lo mejor para su mascota sin complicaciones" />
+    <meta name="twitter:image" content="https://nat-pets.com/banner-1.png" />
+    
+    <!-- TikTok Pixel Code -->
+    <script>
+      !function (w, d, t) {
+        w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
+var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
+;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+
+        ttq.load('D1FMCJJC77UCT61VHHT0');
+        ttq.page(); // Inicialización básica sin UTMs (se agregarán después)
+      }(window, document, 'ttq');
+
+      // Los eventos de TikTok se configurarán más adelante con los UTMs
+    </script>
+    <!-- End TikTok Pixel Code -->
+
+    <!-- Nota: El diagnóstico ahora se maneja directamente con urlUtils.ts -->
+
+    <!-- Meta Pixel Code con captura de parámetros UTM -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+  
+      // La sesión y tracking se gestionan en el sistema modular
+      // a través de sessionService y cliente server-side
+  
+      <!-- La lógica de UTM se ha movido a main.tsx para un manejo más robusto -->
+      // Inicializar pixels con los UTMs del módulo centralizado
+      // e integrar con el sistema server-side
+      // The complex tracking logic is now handled in main.tsx.
+      // This script just initializes the pixel.
+      fbq('init', '3094329594078626');
+      fbq('track', 'PageView');
+    </script>
+    <!-- End Meta Pixel Code -->
+  </head>
+  <body>
+    <!-- Meta Pixel noscript (para usuarios con JavaScript desactivado) -->
+    <noscript>
+      <img height="1" width="1" style="display:none" 
+           src="https://www.facebook.com/tr?id=3094329594078626&ev=PageView&noscript=1" />
+    </noscript>
+    
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Medición de rendimiento de página -->
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          try {
+            // Obtener datos de navegación
+            const navigation = performance.getEntriesByType('navigation')[0];
+            const resources = performance.getEntriesByType('resource');
+            
+            // Tiempos principales
+            const totalLoadTime = performance.now() - window.perfStartTime;
+            const domReady = navigation ? (navigation.domContentLoadedEventEnd - navigation.navigationStart) : 0;
+            
+            // Tiempo de carga de recursos
+            let resourcesTime = 0;
+            let jsTime = 0;
+            let cssTime = 0;
+            let imgTime = 0;
+            
+            resources.forEach(resource => {
+              const time = resource.responseEnd - resource.startTime;
+              resourcesTime += time;
+              
+              if (resource.name.includes('.js')) jsTime += time;
+              else if (resource.name.includes('.css')) cssTime += time;
+              else if (resource.name.match(/\.(png|jpg|jpeg|gif|webp|svg)/i)) imgTime += time;
+            });
+            
+            // Estadísticas detalladas
+            const cacheInfo = window.isFirstVisit ? '🆕 INICIAL' : '♻️ CACHÉ';
+            const stats = {
+              total: Math.round(totalLoadTime),
+              domReady: Math.round(domReady),
+              resources: Math.round(resourcesTime),
+              js: Math.round(jsTime),
+              css: Math.round(cssTime),
+              img: Math.round(imgTime)
+            };
+            
+            // Mensaje formateado para consola
+            console.log(`📊 [PERFORMANCE] Carga ${cacheInfo}:\n` +
+              `  - Tiempo total: ${stats.total}ms\n` +
+              `  - DOM listo: ${stats.domReady}ms\n` +
+              `  - Recursos: ${stats.resources}ms (JS: ${stats.js}ms, CSS: ${stats.css}ms, IMG: ${stats.img}ms)`);
+            
+            // Opcional: Enviar a analytics
+            if (typeof fbq === 'function') {
+              fbq('trackCustom', 'PagePerformance', { 
+                ...stats,
+                cacheType: window.isFirstVisit ? 'first_load' : 'cached_load'
+              });
+            }
+          } catch (e) {
+            console.error('Error al medir rendimiento:', e);
+          }
+        }, 0);
+      });
+    </script>
+    
+    <!-- Custom Events for Pixel Tracking -->
+    <script>
+      // Track Lead event when form is submitted
+      window.trackLead = function() {
+        if (typeof fbq !== 'undefined') {
+          fbq('track', 'Lead');
+        }
+      };
+      
+      // Track ViewContent event when scrolling past hero section with content_id para VSA
+      let viewContentTracked = false;
+      window.addEventListener('scroll', function() {
+        if (!viewContentTracked && window.scrollY > window.innerHeight) {
+          // Usar la función centralizada que gestiona ambos pixels (client y server)
+          if (window.trackViewContent) {
+            // Incluir content_id para compatibilidad con TikTok VSA
+            window.trackViewContent('cookbook-recipes-for-dogs', 'Recetas Naturales para Perros');
+          } else {
+            // Fallback si no está disponible la función centralizada
+            if (typeof fbq !== 'undefined') {
+              fbq('track', 'ViewContent', { content_id: 'cookbook-recipes-for-dogs', content_name: 'Recetas Naturales para Perros' });
+            }
+            if (window.ttq) {
+              window.ttq.track('ViewContent', { content_id: 'cookbook-recipes-for-dogs', content_name: 'Recetas Naturales para Perros' });
+            }
+          }
+          viewContentTracked = true;
+          console.log('📊 [Tracking] ViewContent tracked al hacer scroll');
+        }
+      });
+      
+      // Función de compra con content_id para VSA y tracking unificado
+      function handlePurchase() {
+        if (window.trackPurchase) {
+          window.trackPurchase(15, 'USD', 'cookbook-recipes-for-dogs');
+        }
+        console.log('📊 [Tracking] Purchase tracked desde botón de compra');
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: SITE_NAME_PLACEHOLDER-postgres
+    environment:
+      POSTGRES_DB: SITE_NAME_PLACEHOLDER_crm
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend de tracking
+  backend:
+    build: ./backend/template
+    container_name: SITE_NAME_PLACEHOLDER-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/SITE_NAME_PLACEHOLDER_crm
+      - N8N_URL=http://n8n:5678
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  # Frontend web
+  frontend:
+    build: ./frontend
+    container_name: SITE_NAME_PLACEHOLDER-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  # N8N para workflows
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: SITE_NAME_PLACEHOLDER-n8n
+    ports:
+      - "5679:5678"
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=SITE_NAME_PLACEHOLDER_crm
+      - DB_POSTGRESDB_USER=postgres
+      - DB_POSTGRESDB_PASSWORD=password
+      - DB_POSTGRESDB_SCHEMA=n8n_workflow
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  n8n_data:

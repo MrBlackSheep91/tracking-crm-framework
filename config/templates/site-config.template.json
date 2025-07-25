@@ -1,0 +1,34 @@
+{
+  "site": {
+    "name": "SITE_NAME_PLACEHOLDER",
+    "domain": "DOMAIN_PLACEHOLDER",
+    "logo": "/assets/logo.png",
+    "description": "Descripción del sitio web"
+  },
+  "tracking": {
+    "enableSmartEvents": true,
+    "sessionTimeout": 1800,
+    "maxEventsPerSession": 50,
+    "debugMode": false,
+    "enableConversionTracking": true
+  },
+  "crm": {
+    "leadScoringRules": [
+      { "event": "page_view", "score": 1 },
+      { "event": "button_click", "score": 2 },
+      { "event": "form_interaction", "score": 5 },
+      { "event": "form_submit", "score": 10 },
+      { "event": "conversion", "score": 20 }
+    ],
+    "autoEnrichment": true,
+    "emailSequences": []
+  },
+  "integrations": {
+    "n8nUrl": "http://localhost:5679",
+    "webhookEndpoints": {
+      "visitor": "/webhook/visitor-tracking",
+      "lead": "/webhook/lead-processor",
+      "conversion": "/webhook/conversion-detector"
+    }
+  }
+}

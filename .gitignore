@@ -1,0 +1,19 @@
+# Node.js
+node_modules/
+dist/
+build/
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Docker
+# These files are typically generated from templates during setup
+docker-compose.yml
+*.sqlite # Database files
+
+# Generated example site directory
+my-new-tracking-site/

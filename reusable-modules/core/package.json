@@ -1,0 +1,21 @@
+{
+  "name": "@tracking-crm/core",
+  "version": "1.0.0",
+  "description": "Core services and components for the Tracking CRM Framework.",
+  "main": "./index.ts",
+  "types": "./index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tracking",
+    "crm",
+    "core",
+    "reusable"
+  ],
+  "author": "Your Name/Organization",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.0.0"
+  }
+}

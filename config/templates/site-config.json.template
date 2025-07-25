@@ -1,0 +1,49 @@
+{
+  "siteName": "SITE_NAME_PLACEHOLDER",
+  "domain": "DOMAIN_PLACEHOLDER",
+  "tracking": {
+    "backendUrl": "/api",
+    "googleAnalyticsId": "UA-XXXXX-Y",
+    "debugMode": false
+  },
+  "heroSection": {
+    "title": "Your Awesome Product/Service",
+    "subtitle": "A compelling subtitle that highlights your value proposition.",
+    "ctaButtonText": "Learn More",
+    "ctaButtonLink": "/learn-more",
+    "image": "/assets/hero-image.jpg"
+  },
+  "testimonialsSection": {
+    "title": "What Our Customers Say",
+    "testimonials": [
+      {
+        "quote": "This product changed my life! Highly recommend.",
+        "author": "Jane Doe",
+        "company": "Tech Solutions"
+      },
+      {
+        "quote": "Incredible results and amazing support.",
+        "author": "John Smith",
+        "company": "Global Corp"
+      }
+    ]
+  },
+  "faqSection": {
+    "title": "Frequently Asked Questions",
+    "faqs": [
+      {
+        "question": "What is your pricing?",
+        "answer": "Please visit our pricing page for details."
+      },
+      {
+        "question": "How do I get started?",
+        "answer": "Sign up for a free trial to begin."
+      }
+    ]
+  },
+  "contactInfo": {
+    "email": "info@example.com",
+    "phone": "+1 (123) 456-7890",
+    "address": "123 Main St, Anytown, USA"
+  }
+}

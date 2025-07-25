@@ -1,0 +1,696 @@
+// 1. Configuración básica
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres", "multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public"]
+}
+
+// ENUMS - Mejoran tipado y facilitan IA/ML
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  UNQUALIFIED
+  INACTIVE
+  CHURNED
+
+  @@schema("public")
+}
+
+enum LeadStage {
+  PROSPECT
+  OPPORTUNITY
+  HOT_LEAD
+  CUSTOMER
+  LOST
+
+  @@schema("public")
+}
+
+enum ChannelType {
+  EMAIL
+  WHATSAPP
+  SMS
+  CALL
+  MEETING
+  SOCIAL
+  CHAT
+  PUSH
+  WEB
+  CUSTOM
+
+  @@schema("public")
+}
+
+// 2. Modelo de Negocio (Multi-tenant)
+model Business {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  subdomain String?  @unique
+  isActive  Boolean  @default(true)
+  settings  Json? // Configuración específica del negocio
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  users           BusinessUser[]
+  contacts        Contact[]
+  visitors        Visitor[]
+  interactions    Interaction[]
+  leads           Lead[]
+  channelStatuses ChannelStatus[]
+  activities      Activity[]
+  customFields    CustomField[]
+
+  // Se pueden agregar más relaciones según necesidades reales
+  Session   Session[]
+  LeadScore LeadScore[]
+
+  @@map("businesses")
+  @@schema("public")
+}
+
+model User {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String    @unique
+  password  String
+  firstName String?
+  lastName  String?
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relaciones
+  businesses BusinessUser[]
+  activities Activity[]     @relation("ActivityCreator")
+
+  // Se pueden agregar más relaciones según necesidades del negocio
+
+  @@map("users")
+  @@schema("public")
+}
+
+model BusinessUser {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String   @db.Uuid
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @db.Uuid
+  role       String   @default("member") // owner, admin, member, agent
+
+  @@unique([businessId, userId])
+  @@map("business_users")
+  @@schema("public")
+}
+
+// 3. Modelo de Contactos (CRM)
+model Contact {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String   @db.Uuid
+
+  // Información personal
+  salutation String? // Mr., Mrs., Ms., Dr., etc.
+  firstName  String?
+  middleName String?
+  lastName   String?
+  email      String? // No más @unique para permitir múltiples contactos con mismo email en negocios diferentes
+  emailOptIn Boolean @default(false)
+  phone      String?
+  mobile     String?
+  fax        String?
+
+  // Información profesional
+  company    String?
+  jobTitle   String?
+  department String?
+
+  // Dirección
+  addressType String? // home, work, billing, shipping, etc.
+  street      String?
+  street2     String?
+  city        String?
+  state       String?
+  postalCode  String?
+  country     String?
+
+  // Información adicional
+  dateOfBirth DateTime?
+  gender      String? // M, F, O (Other), U (Unspecified)
+  website     String?
+
+  // Clasificación y segmentación
+  type         String? // customer, vendor, partner, etc.
+  status       String? // active, inactive, unsubscribed, bounced
+  source       String? // web, api, import, referral, etc.
+  sourceDetail String? // Detalles adicionales de la fuente
+  tags         String[]
+
+  // Puntuación y análisis
+  leadScore    Int       @default(0)
+  lastActivity DateTime?
+
+  // Preferencias
+  locale   String? // Preferencia de idioma
+  timezone String? // Zona horaria
+
+  // Datos personalizados
+  customFields Json? // Campos personalizados dinámicos
+
+  // Auditoría
+  createdBy String? // User ID del creador
+  updatedBy String? // User ID del último que actualizó
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  interactions       Interaction[]
+  visitors           Visitor[]
+  channelStatuses    ChannelStatus[]
+  activities         Activity[]      @relation("ContactActivities")
+  customFieldEntries CustomField[]   @relation("ContactCustomFields")
+
+  // Se pueden agregar más relaciones con otros modelos según evolucionen los requisitos
+
+  @@unique([businessId, email]) // Restringe email único por negocio (no globalmente)
+  @@index([businessId])
+  @@index([email])
+  @@index([phone])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@index([leadScore]) // Nuevo índice para scoring
+  @@index([lastActivity]) // Nuevo índice para actividad reciente
+  @@map("contacts")
+  @@schema("public")
+}
+
+// 7. Interacciones y Actividades
+model Interaction {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // Relaciones con entidades
+  contact   Contact? @relation(fields: [contactId], references: [id])
+  contactId String?  @db.Uuid
+
+  lead   Lead?   @relation(fields: [leadId], references: [id])
+  leadId String? @db.Uuid
+
+  // Nota: Referencia a Account eliminada (modelo no definido)
+
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String   @db.Uuid
+
+  // Detalles de interacción
+  type        String // call, email, meeting, note, task, etc.
+  title       String?
+  description String?  @db.Text
+  date        DateTime @default(now())
+  duration    Int? // Duración en minutos (para llamadas, reuniones, etc.)
+
+  // Estado y seguimiento
+  status      String?
+  priority    String? // high, medium, low
+  assignedTo  String?   @db.Uuid
+  dueDate     DateTime?
+  completedAt DateTime?
+
+  // Tracking
+  source   String? // web, mobile, api, etc.
+  sourceId String? // ID en el sistema de origen
+  metadata Json? // Metadatos adicionales
+
+  // Auditoría
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([businessId])
+  @@index([contactId])
+  @@index([leadId])
+  @@index([type])
+  @@index([date])
+  @@index([status])
+  @@index([assignedTo])
+  @@map("interactions")
+  @@schema("public")
+}
+
+// 4. Seguimiento de Visitantes
+model Visitor {
+  id         String   @id @default(uuid()) @db.Uuid
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String   @db.Uuid
+
+  // Identificación y seguimiento
+  fingerprint    String?
+  firstVisitAt   DateTime @default(now())
+  lastVisitAt    DateTime @default(now())
+  totalVisits    Int      @default(1)
+  totalPageViews Int      @default(0)
+  avgTimeOnSite  Float? // En segundos
+
+  // Información de dispositivo (se guarda pero no se duplica en Lead)
+  firstUserAgent  String?
+  firstDeviceType String? // mobile, desktop, tablet
+  firstBrowser    String? // Chrome, Firefox, etc.
+  firstOs         String? // Windows, macOS, iOS, Android, etc.
+
+  // Información de campaña inicial
+  firstCampaign String?
+  firstSource   String?
+  firstMedium   String?
+  firstContent  String?
+  firstTerm     String?
+
+  // Análisis y conversión
+  isIdentified Boolean  @default(false) // Si el visitante ha sido identificado
+  leadId       String?  @db.Uuid // Referencia a conversiones a leads (opcional)
+  contactId    String?  @db.Uuid
+  contact      Contact? @relation(fields: [contactId], references: [id])
+  score        Int      @default(0)
+
+  // Auditoría
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  sessions Session[]
+  leads    Lead[]    @relation("VisitorToLead")
+
+  @@unique([businessId, fingerprint]) // Fingerprint único por negocio (no globalmente)
+  @@index([businessId])
+  @@index([fingerprint])
+  @@index([firstVisitAt])
+  @@index([firstCampaign])
+  @@index([leadId])
+  @@index([isIdentified]) // Nuevo índice para visitantes identificados
+  @@index([score]) // Nuevo índice para scoring de visitantes
+  @@map("visitors")
+  @@schema("public")
+}
+
+// 5. Sesiones de Visitante
+model Session {
+  id         String   @id // The session UUID from the client
+  visitor    Visitor  @relation(fields: [visitorId], references: [id])
+  visitorId  String   @db.Uuid
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String   @db.Uuid
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+  duration  Int? // Duración en segundos
+
+  // Dispositivo y navegador (UNA sola vez, no duplicado en Lead)
+  userAgent        String?
+  deviceType       String? // mobile, desktop, tablet
+  browser          String? // Chrome, Firefox, etc.
+  browserVersion   String?
+  operatingSystem  String? // Windows, macOS, iOS, Android, etc.
+  osVersion        String?
+  screenResolution String?
+  screenSize       String?
+  timezone         String?
+  language         String?
+
+  // Localización (UNA sola vez, no duplicado en Lead)
+  ipAddress String?
+  country   String?
+  region    String?
+  city      String?
+  latitude  Float?
+  longitude Float?
+
+  // Actividad
+  entryUrl    String?
+  exitUrl     String?
+  pagesViewed Int     @default(0)
+  referrer    String?
+
+  // Atribución
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  utmTerm     String?
+  fbclid      String?
+  gclid       String?
+
+  // Análisis IA
+  aiAnalysis Json?
+
+  // Auditoría
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  events VisitorEvent[]
+  leads  Lead[]         @relation("SessionToLead") // Relación con leads generados en esta sesión
+
+  @@index([visitorId])
+  @@index([startedAt])
+  @@index([businessId, startedAt]) // Para consultas rápidas filtradas por negocio
+  @@map("visitor_sessions")
+  @@schema("public")
+}
+
+// 6. Eventos de Visitante
+model VisitorEvent {
+  id        String  @id @default(uuid()) @db.Uuid
+  session   Session @relation(fields: [sessionId], references: [id])
+  sessionId String
+
+  // Detalles del evento
+  eventType String // page_view, click, form_submit, etc.
+  pageUrl   String?
+  pageTitle String?
+  referrer  String?
+  timestamp DateTime @default(now())
+
+  // Datos específicos del evento
+  targetElement String? // ID del elemento en DOM
+  targetText    String? // Texto del elemento
+  targetType    String? // Tipo del elemento (button, link, etc.)
+  targetClasses String? // Clases CSS
+  eventValue    Float? // Valor asociado al evento
+  eventData     Json? // Datos adicionales JSON
+  metadata      Json? // Metadatos generales
+
+  // Datos de conversión
+  conversionType    String? // Tipo de conversión (lead, purchase, etc.)
+  conversionValue   Float? // Valor de la conversión
+  conversionSuccess Boolean? // Si la conversión fue exitosa
+
+  // Para eventos de formulario
+  formId                  String? // ID del formulario
+  formFields              Json? // Campos del formulario (no sensibles)
+  formErrors              Json? // Errores del formulario
+  formEmptyFields         Int? // Número de campos vacíos
+  formEmptyRequiredFields Json? // Nombres de campos requeridos vacíos (almacenado como array JSON)
+  formIsValid             Boolean? // Si el formulario es válido
+  formWillSubmit          Boolean? // Si el formulario se enviará
+  conversionAttemptId     String? // ID único del intento de conversión
+
+  // Auditoría y análisis
+  clientGeneratedAt DateTime? // Cuándo se generó el evento en el cliente
+  timeToGenerate    Int? // Tiempo para generar el evento (ms)
+  timeToSend        Int? // Tiempo para enviar el evento (ms)
+  createdAt         DateTime  @default(now())
+
+  @@index([eventType])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([conversionType])
+  @@index([conversionSuccess])
+  @@index([formWillSubmit])
+  @@map("visitor_events")
+  @@schema("public")
+}
+
+// 8. Modelo de Lead (Contacto Potencial)
+model Lead {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String   @db.Uuid
+
+  // Referencias importantes - visitorId obligatorio pero sessionId opcional para compatibilidad
+  visitorId String   @db.Uuid
+  visitor   Visitor  @relation("VisitorToLead", fields: [visitorId], references: [id])
+  sessionId String? // Opcional para permitir leads sin sesión web (ej. importados)
+  session   Session? @relation("SessionToLead", fields: [sessionId], references: [id])
+
+  // Identificadores importantes para trazabilidad
+  formId   String? // ID del formulario como UUID o slug (opcional por retrocompatibilidad)
+  formType String? // Tipo de formulario (lead_magnet, contact, etc.)
+
+  // Información de contacto (básica, el resto en Contact)
+  email    String? // Nullable para mayor flexibilidad, sin @unique para permitir múltiples leads
+  name     String? // Nombre completo
+  phone    String?
+  company  String?
+  jobTitle String?
+
+  // CAMBIO: Status y Stage ahora son ENUMS
+  status   LeadStatus @default(NEW)
+  stage    LeadStage  @default(PROSPECT)
+  score    Int        @default(0)
+  isHot    Boolean    @default(false)
+  leadType String? // book_purchase, free_guide, etc.
+
+  // Tracking y atribución de campaña
+  campaignId   String? // Identificador de campaña
+  campaignName String? // Nombre de la campaña
+  processType  String? // sales, nurture, etc.
+  source       String? // utm_source: facebook, google, etc.
+  medium       String? // utm_medium: cpc, email, social, etc.
+  content      String? // utm_content: ID del anuncio
+  term         String? // utm_term: ID del conjunto de anuncios
+  fbclid       String? // Click ID de Facebook
+  entryDate    DateTime @default(now()) // Fecha de entrada a la campaña (no más nullable)
+  currentStep  Int      @default(0) // Paso actual en la campaña
+
+  // Conversión
+  convertedAt    DateTime?
+  convertedTo    String? // customer, opportunity, etc.
+  convertedId    String? // ID del recurso al que se convirtió
+  conversionPage String? // URL donde ocurrió la conversión
+
+  // Tracking de interacción (sólo lo esencial, no duplicar data de sesión)
+  interactionType        String? // form_submit, button_click, etc.
+  interactionSource      String? // landing-page, email, etc.
+  interactionDescription String? // Descripción textual de la interacción
+  timeOnPage             Float? // Tiempo en segundos en la página de conversión
+  scrollPercentage       Int? // Porcentaje de scroll en la página
+
+  // NUEVO: Multi-channel status (email + WhatsApp + otros)
+  // Canales estándar integrados
+  emailFunnelStatus String? // subscribed, active, bounced, etc.
+  emailSequenceStep Int? // Paso actual en secuencia email
+  emailLastOpen     DateTime?
+  emailLastClick    DateTime?
+
+  whatsappStatus       String? // opted_in, active, unsubscribed, etc.
+  whatsappSequenceStep Int? // Paso actual en secuencia WhatsApp
+  whatsappLastReply    DateTime?
+
+  // NUEVO: Relación con estado detallado de canales (escalable)
+  channelStatuses ChannelStatus[]
+
+  // Datos personalizados
+  customFields Json? // Campos personalizados dinámicos
+
+  // Auditoría
+  createdBy String?
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  interactions Interaction[]
+  activities   Activity[]    @relation("LeadActivities")
+
+  // Se pueden agregar más relaciones según necesidades del funnel de ventas
+  LeadScore LeadScore[]
+
+  @@index([businessId])
+  @@index([email])
+  @@index([status])
+  @@index([stage])
+  @@index([createdAt])
+  @@index([visitorId]) // Para buscar leads por visitor rápidamente
+  @@index([sessionId]) // Para buscar leads por sesión
+  @@index([formId]) // Para analizar rendimiento de formularios
+  @@index([score]) // Nuevo índice para lead scoring
+  @@index([isHot]) // Nuevo índice para leads calientes
+  @@index([campaignId]) // Nuevo índice para análisis de campañas
+  @@map("leads")
+  @@schema("public")
+}
+
+// NUEVO: Canal Status por lead (email, WhatsApp, etc.)
+model ChannelStatus {
+  id         String   @id @default(uuid()) @db.Uuid
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String   @db.Uuid
+
+  // Referencias a entidades
+  leadId    String?  @db.Uuid
+  lead      Lead?    @relation(fields: [leadId], references: [id])
+  contactId String?  @db.Uuid
+  contact   Contact? @relation(fields: [contactId], references: [id])
+
+  // Datos del canal
+  channel      ChannelType // EMAIL, WHATSAPP, etc.
+  status       String // subscribed, active, bounced, etc.
+  step         Int         @default(1)
+  nextStepDate DateTime? // Cuándo se enviará el siguiente mensaje
+
+  // Métricas
+  messagesSent     Int       @default(0)
+  messagesReceived Int       @default(0)
+  lastMessageDate  DateTime?
+  lastResponseDate DateTime?
+
+  // Metadata
+  metadata Json?
+
+  // Auditoría
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+
+  @@unique([leadId, channel]) // Solo un estado por canal por lead
+  @@unique([contactId, channel]) // Solo un estado por canal por contacto
+  @@index([businessId, channel]) // Para consultar rápido por canal
+  @@index([nextStepDate]) // Para procesos batch/cron
+  @@map("channel_statuses")
+  @@schema("public")
+}
+
+// NUEVO: Actividad Unificada (alternativa a tener eventos separados)
+model Activity {
+  id         String   @id @default(uuid()) @db.Uuid
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String   @db.Uuid
+
+  // Tipo y categoría
+  type     String // page_view, email_open, whatsapp_reply, form_submit, etc.
+  category String // tracking, communication, crm, etc.
+
+  // Referencias a entidades (polimórficas)
+  entityType String // lead, contact, visitor, etc.
+  entityId   String @db.Uuid
+
+  // Referencias a entidades específicas
+  leadId    String?  @db.Uuid
+  lead      Lead?    @relation("LeadActivities", fields: [leadId], references: [id])
+  contactId String?  @db.Uuid
+  contact   Contact? @relation("ContactActivities", fields: [contactId], references: [id])
+
+  // Datos de actividad
+  title       String?
+  description String? @db.Text
+  data        Json? // Datos específicos de la actividad
+  metadata    Json? // Metadatos adicionales
+
+  // Creador/origen
+  createdBy String? @db.Uuid
+  creator   User?   @relation("ActivityCreator", fields: [createdBy], references: [id])
+  source    String? // web, api, n8n, etc.
+
+  // Auditoría
+  createdAt DateTime @default(now())
+
+  @@index([businessId, type])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([leadId])
+  @@index([contactId])
+  @@map("activities")
+  @@schema("public")
+}
+
+// CustomField polimórfico - Modelo para campos personalizados flexibles
+model CustomField {
+  id         String   @id @default(uuid()) @db.Uuid
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String   @db.Uuid
+
+  // Referencias polimórficas
+  entityType String // lead, contact, account, etc.
+  entityId   String @db.Uuid
+
+  // Referencias específicas
+  contactId String?  @db.Uuid
+  contact   Contact? @relation("ContactCustomFields", fields: [contactId], references: [id])
+
+  // Definición del campo
+  key       String
+  value     String @db.Text
+  valueType String // string, number, date, boolean, json
+
+  // Para formularios/campos personalizados
+  label       String?
+  description String?
+  isPrivate   Boolean @default(false)
+
+  // Auditoría
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entityType, entityId, key]) // Un solo valor por clave por entidad
+  @@index([businessId, key]) // Para búsquedas por clave
+  @@index([value]) // Para búsquedas por valor
+  @@map("custom_fields")
+  @@schema("public")
+}
+
+// Modelo para scoring dinámico de leads basado en comportamiento
+model LeadScore {
+  id         String   @id @default(uuid()) @db.Uuid
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String   @db.Uuid
+
+  lead   Lead   @relation(fields: [leadId], references: [id])
+  leadId String @db.Uuid
+
+  // Detalles del scoring
+  behavior  String // viewed_pricing, completed_quiz, watched_video_75pct
+  points    Int
+  metadata  Json? // Contexto adicional
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+  @@index([behavior])
+  @@map("lead_scores")
+  @@schema("public")
+}
+
+// Nota para implementación futura: Para compatibilidad con flujos legacy, se debe crear
+// una vista SQL 'legacy_leads' después de aplicar este schema usando el siguiente SQL:
+/**
+ * CREATE OR REPLACE VIEW public.legacy_leads AS
+ * SELECT
+ * l.id,
+ * l."businessId",
+ * l.email,
+ * l.name,
+ * l.phone,
+ * l.company,
+ * l."jobTitle",
+ * l.status::text as status,
+ * l.score,
+ * l."isHot",
+ * l."leadType",
+ * l."campaignName" as campaign,
+ * l.source,
+ * l.medium,
+ * l.content,
+ * l.term,
+ * l.fbclid,
+ * l."visitorId",
+ * l."sessionId",
+ * s."deviceType",
+ * s.browser,
+ * s."operatingSystem",
+ * s.language,
+ * s.timezone,
+ * s."ipAddress",
+ * s.country,
+ * s.region,
+ * s.city,
+ * s.referrer,
+ * l."createdAt",
+ * l."updatedAt"
+ * FROM
+ * public.leads l
+ * LEFT JOIN
+ * public.visitor_sessions s ON l."sessionId" = s.id;
+ */
