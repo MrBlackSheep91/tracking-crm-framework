@@ -13,12 +13,12 @@ import {
   TrackerConfig, 
   SessionData, 
   TrackingEvent, 
-  DEFAULT_CONFIG,
   EVENT_CATEGORIES,
   EVENT_PRIORITIES,
   ApiResponse,
   HealthCheckResponse
 } from '../types';
+import { DEFAULT_CONFIG } from '../config/defaults';
 
 export class InnovaTracker {
   private config: Required<TrackerConfig>;
@@ -32,7 +32,7 @@ export class InnovaTracker {
   private currentUrl: string = '';
   
   constructor(config: TrackerConfig) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.config = { ...DEFAULT_CONFIG, ...config } as Required<TrackerConfig>;
     
     // Inicializar módulos
     this.sessionManager = new SessionManager(this.config);
@@ -338,21 +338,21 @@ export class InnovaTracker {
    * Obtener métricas en tiempo real del backend
    */
   async getRealtimeMetrics(): Promise<any> {
-    return await this.dataService.getRealtimeMetrics(this.config.businessId);
+    return await this.dataService.getRealtimeMetrics(this.config.businessId.toString());
   }
 
   /**
    * Obtener métricas del dashboard
    */
   async getDashboardMetrics(period?: string): Promise<any> {
-    return await this.dataService.getDashboardMetrics(this.config.businessId, period);
+    return await this.dataService.getDashboardMetrics(this.config.businessId.toString(), period);
   }
 
   /**
    * Obtener métricas generales con opciones
    */
   async getMetrics(options: any = {}): Promise<any> {
-    return await this.dataService.getMetrics(this.config.businessId, options);
+    return await this.dataService.getMetrics(this.config.businessId.toString(), options);
   }
 
   /**

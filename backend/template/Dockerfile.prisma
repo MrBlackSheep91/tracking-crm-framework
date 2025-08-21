@@ -1,0 +1,19 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copiar archivos de configuración
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Instalar dependencias
+RUN npm ci --only=production
+
+# Generar cliente Prisma
+RUN npx prisma generate
+
+# Exponer puerto para Prisma Studio
+EXPOSE 5555
+
+# Comando por defecto (se sobrescribe en docker-compose.yml)
+CMD ["npx", "prisma", "studio", "--hostname", "0.0.0.0", "--port", "5555"]

@@ -16,9 +16,9 @@ import {
   TrackingEvent, 
   SessionEndReason,
   EventCategory,
-  UserBehavior,
-  DEFAULT_CONFIG
+  UserBehavior
 } from '../types';
+import { DEFAULT_CONFIG } from '../config/defaults';
 import { getEventPriority, isCriticalEvent } from '../config/criticalEvents';
 
 export class SessionManager {
@@ -41,8 +41,8 @@ export class SessionManager {
   private onSessionEndCallback: ((sessionData: SessionData) => void) | null = null;
   private sendDataFunction: ((data: any) => Promise<boolean>) | null = null;
   
-  constructor(config: TrackerConfig) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+  constructor(config: Required<TrackerConfig>) {
+    this.config = config;
     this.setupEventListeners();
   }
 

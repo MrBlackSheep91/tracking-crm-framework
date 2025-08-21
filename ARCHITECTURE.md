@@ -187,18 +187,14 @@ La instancia de `InnovaTracker` expone una API sencilla y potente:
 
 ```typescript
 // Métodos principales
-tracker.trackPageView(customData?: object): void;
-tracker.trackEvent(eventType: string, eventData: object): void;
+tracker.trackPageView(pageData: { page: string; title: string }): void;
+tracker.trackEvent(eventName: string, eventData: object): void;
 tracker.captureLead(leadData: object): Promise<void>;
 
-// Métodos de conveniencia
-tracker.trackCTA(ctaData: object): void;
-tracker.trackFormInteraction(formData: object): void;
-
-// Control manual
-tracker.startTracking(): void;
-tracker.stopTracking(): void;
-tracker.flushEvents(): void; // Forzar envío del buffer
+// Métodos de estado y utilidad
+tracker.getStats(): object; // Obtener estadísticas de la sesión
+tracker.healthCheck(): Promise<object>; // Verificar el estado del backend
+tracker.flushEvents(): void; // Forzar envío del buffer de eventos
 ```
 
 ---
@@ -208,7 +204,7 @@ tracker.flushEvents(): void; // Forzar envío del buffer
 ### 📊 Tracking Endpoints
 
 ```typescript
-// POST /api/track/event - Evento principal (batch)
+// POST /api/v1/track/event - Envío de eventos en lote (batch)
 {
   body: {
     session: { /* datos de sesión */ },
@@ -216,21 +212,19 @@ tracker.flushEvents(): void; // Forzar envío del buffer
   }
 }
 
-// POST /api/track/event-single - Evento individual
+// POST /api/v1/track/heartbeat - Señal de vida de la sesión
 {
-  sessionId: "uuid",
-  eventType: "click",
-  metadata: { /* datos del evento */ }
+  sessionId: "uuid"
 }
 
-// POST /api/track/session-end - Finalizar sesión
+// POST /api/v1/track/session-end - Finalizar sesión explícitamente
 {
   sessionId: "uuid",
-  endTime: "2025-01-09T12:00:00Z"
+  finalMetrics: { /* métricas finales de la sesión */ }
 }
 
-// GET /api/track/stats - Estadísticas
-// Respuesta: métricas de tracking
+// GET /health - Health check del servicio
+// Respuesta: { status: 'healthy', ... }
 ```
 
 ### 👥 Lead Endpoints

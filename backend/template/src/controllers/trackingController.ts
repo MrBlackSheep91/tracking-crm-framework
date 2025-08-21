@@ -17,7 +17,7 @@ export const handleBatchEvents = async (req: Request, res: Response) => {
       events,
       businessId
     };
-    
+
     const result = await processTrackEvent(normalizedPayload);
     
     res.status(200).json({ 
@@ -33,3 +33,30 @@ export const handleBatchEvents = async (req: Request, res: Response) => {
     res.status(statusCode).json({ success: false, message });
   }
 };
+
+export const handleHeartbeat = async (req: Request, res: Response) => {
+  try {
+    console.log('[HEARTBEAT] Payload recibido:', JSON.stringify(req.body, null, 2));
+    // Validado por middleware Joi. Aquí podríamos persistir métricas livianas.
+    res.status(200).json({ success: true, message: 'Heartbeat recibido' });
+  } catch (error: any) {
+    console.error('[HEARTBEAT] Error:', error.message);
+    const statusCode = error.statusCode || 500;
+    const message = error.statusCode ? error.message : 'Internal Server Error';
+    res.status(statusCode).json({ success: false, message });
+  }
+};
+
+export const handleSessionEnd = async (req: Request, res: Response) => {
+  try {
+    console.log('[SESSION END] Payload recibido:', JSON.stringify(req.body, null, 2));
+    // Validado por middleware Joi. Futuro: actualizar endedAt/duración en DB.
+    res.status(200).json({ success: true, message: 'Session end recibido' });
+  } catch (error: any) {
+    console.error('[SESSION END] Error:', error.message);
+    const statusCode = error.statusCode || 500;
+    const message = error.statusCode ? error.message : 'Internal Server Error';
+    res.status(statusCode).json({ success: false, message });
+  }
+};
+

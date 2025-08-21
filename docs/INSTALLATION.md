@@ -18,7 +18,7 @@ El backend es el corazón del sistema. Se encarga de recibir, procesar y almacen
 Si aún no lo has hecho, clona el repositorio del proyecto en tu máquina local.
 
 ```bash
-git clone <URL_DEL_REPOSITORIO> innova-tracking-framework
+git clone https://github.com/innova-marketing/tracking-crm-framework.git innova-tracking-framework
 cd innova-tracking-framework
 ```
 
@@ -73,7 +73,7 @@ Una vez que los contenedores estén en ejecución, necesitas aplicar el esquema 
 
 ```bash
 # Ejecuta este comando dentro del contenedor del backend
-docker-compose exec backend npm run prisma:migrate
+docker-compose exec backend npm run db:migrate:deploy
 ```
 
 ### 5. Verificar la Instalación del Backend
@@ -81,19 +81,97 @@ docker-compose exec backend npm run prisma:migrate
 Abre tu navegador o usa `curl` para comprobar que la API está funcionando correctamente.
 
 ```bash
-curl http://localhost:3001/api/health
+curl http://localhost:3001/health
 ```
 
 Deberías recibir una respuesta como esta:
 
 ```json
 {
-  "status": "ok",
-  "timestamp": "2024-07-29T12:00:00.000Z"
+  "status": "healthy",
+  "timestamp": "...",
+  "database": "connected",
+  "version": "2.0.0",
+  "uptime": ...
 }
 ```
 
 ¡Felicidades! El backend está instalado y funcionando.
+
+## 🚀 Plan de Instalación Completo
+
+Esta guía detalla el proceso completo para configurar, instalar y verificar el entorno de desarrollo del backend del Tracking CRM Framework.
+
+### 1. Requisitos Previos
+
+-   [Docker](https://www.docker.com/get-started) instalado y en ejecución.
+-   [Node.js](https://nodejs.org/) (v18 o superior).
+-   [Git](https://git-scm.com/) para control de versiones.
+-   Un cliente de base de datos compatible con PostgreSQL (opcional, para verificación).
+
+### 2. Configuración del Entorno de Desarrollo (Paso a Paso)
+
+#### Paso 2.1: Clonar el Repositorio
+
+Primero, clona el repositorio oficial desde GitHub a tu máquina local.
+
+```bash
+git clone https://github.com/MrBlackSheep91/tracking-crm-framework.git
+cd tracking-crm-framework
+```
+
+#### Paso 2.2: Configurar Variables de Entorno
+
+El sistema utiliza un archivo `.env` para gestionar las configuraciones. Copia la plantilla de ejemplo para crear tu propio archivo de configuración.
+
+```bash
+cp .env.template .env
+```
+
+**Importante:** Verifica que la variable `DATABASE_URL` en tu nuevo archivo `.env` coincida con las credenciales definidas en `docker-compose.yml` para asegurar la conexión.
+
+```env
+# Ejemplo de .env
+DATABASE_URL="postgresql://user:password@localhost:5433/tracking_crm?schema=public"
+```
+
+#### Paso 2.3: Levantar los Servicios con Docker
+
+Utiliza Docker Compose para construir las imágenes y orquestar los contenedores de la API y la base de datos. El flag `--build` asegura que se reconstruya la imagen si hay cambios, y `-d` lo ejecuta en segundo plano.
+
+```bash
+docker-compose up -d --build
+```
+
+#### Paso 2.4: Ejecutar las Migraciones de la Base de Datos
+
+Con los contenedores ya en ejecución, es necesario aplicar el esquema de la base de datos. Este comando utiliza Prisma para sincronizar el esquema con tu instancia de PostgreSQL.
+
+```bash
+npx prisma migrate dev --name init
+```
+
+### 3. Verificación del Sistema
+
+Una vez completados los pasos anteriores, el backend estará operativo en `http://localhost:3001`.
+
+Para confirmar que la instalación fue exitosa, realiza una petición `GET` al endpoint de `health check`.
+
+```bash
+curl http://localhost:3001/health
+```
+
+Una respuesta exitosa confirmará que el servidor está saludable y conectado a la base de datos:
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-08-21T10:00:00.000Z",
+  "database": "connected"
+}
+```
+
+**¡Felicidades! El entorno de desarrollo del Tracking CRM Framework está listo para usarse.**
 
 ## 📦 Paso 2: Integración del Cliente Frontend
 
@@ -102,7 +180,7 @@ Con el backend listo, el siguiente paso es integrar el cliente de tracking en tu
 El cliente se distribuye como un paquete de `npm`, por lo que la instalación es muy sencilla.
 
 ```bash
-npm install @innova-marketing/tracking-crm-framework
+npm install @tracking-crm/client
 ```
 
 Para obtener instrucciones detalladas sobre cómo inicializar y usar el tracker en tu proyecto (React, Vue, JS Vanilla), consulta nuestra **[Guía de Integración](./INTEGRATION.md)**.

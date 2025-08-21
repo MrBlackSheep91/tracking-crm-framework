@@ -4,7 +4,8 @@
  */
 
 import { InnovaTracker } from './InnovaTracker';
-import { TrackerConfig, DEFAULT_CONFIG } from '../types';
+import { TrackerConfig } from '../types';
+import { DEFAULT_CONFIG } from '../config/defaults';
 
 /**
  * Crea una instancia del tracker con configuración personalizada
@@ -217,7 +218,7 @@ export const createBusinessTracker = (
   baseUrl: string,
   overrides: Partial<TrackerConfig> = {}
 ): InnovaTracker => {
-  const presetConfig = BUSINESS_PRESETS[businessType](businessId, baseUrl);
+  const presetConfig = BUSINESS_PRESETS[businessType](businessId.toString(), baseUrl);
   const finalConfig = { ...presetConfig, ...overrides };
   
   return new InnovaTracker(finalConfig);

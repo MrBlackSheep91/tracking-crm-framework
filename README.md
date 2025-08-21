@@ -32,11 +32,24 @@ node --version  # >= 18.0.0
 git clone https://github.com/innova-marketing/tracking-crm-framework.git
 cd tracking-crm-framework
 
-# 2. Levantar sistema completo
+# 2. Levantar sistema completo (incluye Prisma Studio en puerto 5555)
 docker-compose up -d
 
 # 3. Verificar que funciona
 curl http://localhost:3001/health
+
+# 4. Acceder a Prisma Studio para ver la base de datos
+# http://localhost:5555
+```
+
+### Opción 2: Paquete NPM del Cliente
+```bash
+# Instalar solo el cliente JavaScript (próximamente)
+npm install @tracking-crm/client
+
+# Uso básico
+import { createInnovaTracker } from '@tracking-crm/client';
+const tracker = createInnovaTracker({ baseUrl: 'your-backend-url' });
 ```
 
 ### Opción 3: Self-Hosted Completo
@@ -57,7 +70,7 @@ node scripts/development/verify-database-state.js  # Verificar estado de DB
 
 # Health check del sistema
 curl http://localhost:3001/health
-# Respuesta: {"status":"ok","timestamp":"...","activeSessions":0,"version":"2.0.0"}
+# Respuesta: {"status":"healthy","timestamp":"...","database":"connected","version":"2.0.0","uptime":...}
 ```
 
 ## 📚 Documentación
@@ -67,9 +80,6 @@ curl http://localhost:3001/health
 - **[Tracking Integration Guide](docs/TRACKING-INTEGRATION-GUIDE.md)** - Guía de integración
 - **[Arquitectura](ARCHITECTURE.md)** - Estructura técnica del sistema
 
-### 🗂️ Archivos de Auditoría (Post-cleanup)
-- **[Auditoría Completa](AUDITORIA-ARCHIVOS-COMPLETA.md)** - Inventario completo de archivos
-- **[Plan de Limpieza](PLAN-LIMPIEZA-INMEDIATO.md)** - Estrategia de consolidación aplicada
 
 ## 🎯 Uso Básico
 
@@ -93,7 +103,7 @@ tracker.trackEvent('cta_click', { ctaId: 'hero-button', ctaText: 'Comenzar' });
 ### Backend (Node.js + TypeScript)
 - **API REST**: Express.js con validación Joi
 - **Base de Datos**: PostgreSQL con Prisma ORM
-- **Endpoints**: `/api/track`, `/api/lead`, `/health`, `/api/stats`
+- **Endpoints**: `/api/v1/track/*`, `/api/leads`, `/api/metrics/*`, `/health`
 
 ### Frontend (TypeScript)
 - **InnovaTracker**: Clase principal de tracking
@@ -103,19 +113,19 @@ tracker.trackEvent('cta_click', { ctaId: 'hero-button', ctaText: 'Comenzar' });
 ### Docker Stack
 - **PostgreSQL**: Puerto 5433, base de datos `tracking_crm`  
 - **Backend API**: Puerto 3001, health checks integrados
-- **Prisma Studio**: Interfaz de administración DB
+- **Prisma Studio**: Puerto 5555, interfaz de administración DB
 
 ## 📊 Endpoints API
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| POST | `/api/track` | Tracking universal (sesiones, eventos) |
-| POST | `/api/lead` | Captura directa de leads |
-| GET | `/health` | Health check del sistema |
-| GET | `/api/stats` | Estadísticas del sistema |
-| POST | `/api/track/heartbeat` | Heartbeat de sesiones activas |
-| POST | `/api/track/batch` | Eventos en lote |
-| POST | `/api/track/session-end` | Finalizar sesión |
+| POST | `/api/v1/track/event` | Endpoint principal para recibir lotes de eventos. |
+| POST | `/api/v1/track/heartbeat` | Mantiene una sesión de usuario activa. |
+| POST | `/api/v1/track/session-end` | Marca el final explícito de una sesión. |
+| POST | `/api/leads` | Crea un nuevo lead en el CRM. |
+| GET | `/api/leads` | Obtiene una lista de leads con filtros. |
+| GET | `/api/metrics/*` | Endpoints para consultar métricas agregadas. |
+| GET | `/health` | Verifica el estado del servicio y la base de datos. |
 
 ## ✅ Estado del Proyecto
 

@@ -294,4 +294,73 @@ describe('🔍 Test 4: Batch de Eventos Múltiples', () => {
       expect(response.body.message).toContain('Payload de lote de eventos inválido');
     });
   });
+
+  describe('❤️ Endpoints Adicionales de Sesión', () => {
+    const visitorId = uuidv4();
+    const sessionId = uuidv4();
+
+    test('✅ POST /heartbeat debe aceptar un payload válido', async () => {
+      const heartbeatPayload = {
+        businessId: testBusinessId,
+        visitorId,
+        sessionId,
+        timestamp: new Date().toISOString(),
+        isActive: true,
+      };
+
+      const response = await request(app)
+        .post('/api/v1/track/heartbeat')
+        .send(heartbeatPayload)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Heartbeat recibido');
+    });
+
+    test('❌ POST /heartbeat debe rechazar un payload inválido', async () => {
+      const invalidPayload = {
+        businessId: testBusinessId,
+        // Falta visitorId y sessionId
+      };
+
+      const response = await request(app)
+        .post('/api/v1/track/heartbeat')
+        .send(invalidPayload)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    test('✅ POST /session-end debe aceptar un payload válido', async () => {
+      const sessionEndPayload = {
+        businessId: testBusinessId,
+        visitorId,
+        sessionId,
+        endedAt: new Date().toISOString(),
+      };
+
+      const response = await request(app)
+        .post('/api/v1/track/session-end')
+        .send(sessionEndPayload)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Session end recibido');
+    });
+
+    test('❌ POST /session-end debe rechazar un payload inválido', async () => {
+      const invalidPayload = {
+        businessId: testBusinessId,
+        visitorId,
+        // Falta sessionId y endedAt
+      };
+
+      const response = await request(app)
+        .post('/api/v1/track/session-end')
+        .send(invalidPayload)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+  });
 });

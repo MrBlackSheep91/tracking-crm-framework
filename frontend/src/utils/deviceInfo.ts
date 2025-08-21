@@ -132,10 +132,10 @@ const getOperatingSystemInfo = (userAgent: string): { name: string; version: str
     { name: 'Windows', regex: /Windows NT (\d+\.\d+)/ },
     { name: 'macOS', regex: /Mac OS X (\d+[._]\d+)/ },
     { name: 'iOS', regex: /OS (\d+[._]\d+)/ },
-    { name: 'Android', regex: /Android (\d+\.\d+)/ },
-    { name: 'Linux', regex: /Linux/ },
+    { name: 'Android', regex: /Android (\d+\.\d+)/ }, // Android debe estar antes de Linux
+    { name: 'Chrome OS', regex: /CrOS/ },
     { name: 'Ubuntu', regex: /Ubuntu/ },
-    { name: 'Chrome OS', regex: /CrOS/ }
+    { name: 'Linux', regex: /Linux/ } // Linux al final para no interferir con Android
   ];
 
   for (const system of systems) {

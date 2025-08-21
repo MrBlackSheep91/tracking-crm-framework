@@ -4,7 +4,8 @@
  * Sistema robusto para detectar engagement y comportamiento genuino
  */
 
-import { TrackerConfig, DEFAULT_CONFIG } from '../types';
+import { TrackerConfig } from '../types';
+import { DEFAULT_CONFIG } from '../config/defaults';
 
 interface ActivityStats {
   isActive: boolean;
@@ -61,8 +62,8 @@ export class ActivityMonitor {
   private onActivityChangeCallback: ((stats: ActivityStats) => void) | null = null;
   private onInactivityCallback: (() => void) | null = null;
 
-  constructor(config: TrackerConfig) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+  constructor(config: Required<TrackerConfig>) {
+    this.config = config;
   }
 
   // ==================== MÉTODOS PRINCIPALES ====================
@@ -118,7 +119,10 @@ export class ActivityMonitor {
    * Obtener estadísticas actuales
    */
   getStats(): ActivityStats {
-    this.updateStats();
+    // Solo actualizar estadísticas si estamos monitoreando
+    if (this.isMonitoring) {
+      this.updateStats();
+    }
     return { ...this.stats };
   }
 

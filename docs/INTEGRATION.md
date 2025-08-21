@@ -9,9 +9,9 @@ La forma recomendada de integrar InnovaTracker es a través de `npm` o `yarn`.
 ### 1. Instalación
 
 ```bash
-npm install @innova-marketing/tracking-crm-framework
+npm install @tracking-crm/client
 # O con yarn
-yarn add @innova-marketing/tracking-crm-framework
+yarn add @tracking-crm/client
 ```
 
 ### 2. Inicialización
@@ -19,7 +19,7 @@ yarn add @innova-marketing/tracking-crm-framework
 Importa la factory `createInnovaTracker` y crea una instancia. Esto debe hacerse una sola vez en tu aplicación.
 
 ```javascript
-import { createInnovaTracker } from '@innova-marketing/tracking-crm-framework';
+import { createInnovaTracker } from '@tracking-crm/client';
 
 const tracker = createInnovaTracker({
   businessId: 'TU_BUSINESS_ID',      // Requerido: El ID de tu negocio
@@ -56,7 +56,7 @@ Para sitios web estáticos, puedes usar un bundler como Webpack o Vite para mane
 
 ```javascript
 // main.js
-import { createInnovaTracker } from '@innova-marketing/tracking-crm-framework';
+import { createInnovaTracker } from '@tracking-crm/client';
 
 const tracker = createInnovaTracker({
     businessId: 'TU_BUSINESS_ID',
@@ -64,7 +64,7 @@ const tracker = createInnovaTracker({
 });
 
 document.getElementById('contact-button').addEventListener('click', () => {
-    tracker.trackCTA({ ctaId: 'contact-button', ctaText: 'Contactar' });
+    tracker.trackEvent('cta_click', { ctaId: 'contact-button', ctaText: 'Contactar' });
     alert('¡Gracias por contactarnos!');
 });
 ```
@@ -76,7 +76,7 @@ La mejor práctica en React es inicializar el tracker en un contexto para que es
 **`src/contexts/TrackingProvider.js`**
 ```jsx
 import React, { createContext, useContext } from 'react';
-import { createInnovaTracker } from '@innova-marketing/tracking-crm-framework';
+import { createInnovaTracker } from '@tracking-crm/client';
 
 const TrackingContext = createContext(null);
 
@@ -142,7 +142,7 @@ En Vue 3, puedes usar el sistema de `provide`/`inject` para un resultado similar
 ```javascript
 import { createApp } from 'vue';
 import App from './App.vue';
-import { createInnovaTracker } from '@innova-marketing/tracking-crm-framework';
+import { createInnovaTracker } from '@tracking-crm/client';
 
 // Crea la instancia del tracker
 const tracker = createInnovaTracker({
@@ -173,7 +173,7 @@ const tracker = inject('tracker');
 
 const handleCTA = () => {
   if (tracker) {
-    tracker.trackCTA({ ctaId: 'vue-cta', ctaText: '¡Haz clic!' });
+    tracker.trackEvent('cta_click', { ctaId: 'vue-cta', ctaText: '¡Haz clic!' });
   }
 };
 </script>

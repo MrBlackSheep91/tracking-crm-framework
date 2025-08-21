@@ -1,7 +1,7 @@
 {
-  "name": "@innovamarketing/tracking-crm-framework", 
+  "name": "@blacksheep91/client",
   "version": "2.0.0",
-  "description": "Sistema completo de tracking CRM - Cliente frontend TypeScript",
+  "description": "Cliente ligero de TypeScript para el Tracking CRM Framework",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -13,27 +13,33 @@
     "dev": "tsup --watch",
     "serve": "nodemon dev-server.js",
     "test:e2e": "concurrently \"npm:dev\" \"npm:serve\"",
-    "test": "jest"
+    "test": "jest --config=test/jest.config.cjs",
+    "test:watch": "jest --config=test/jest.config.cjs --watch",
+    "test:coverage": "jest --config=test/jest.config.cjs --coverage"
   },
   "keywords": [
     "tracking",
     "analytics",
-    "marketing",
-    "innova"
+    "crm",
+    "client"
   ],
   "author": "Innova Marketing",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^18.0.0",
+    "@types/jest": "^29.5.0",
     "concurrently": "^7.0.0",
+    "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
     "nodemon": "^2.0.0",
+    "ts-jest": "^29.1.0",
     "tsup": "^6.0.0",
-    "typescript": "^4.0.0"
-  },
-  "dependencies": {
-    "uuid": "^9.0.0",
+    "typescript": "^4.0.0",
     "express": "^4.18.0",
     "cors": "^2.8.5"
+  },
+  "dependencies": {
+    "uuid": "^9.0.0"
   },
   "type": "module"
 }

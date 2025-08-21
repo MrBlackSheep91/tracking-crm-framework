@@ -66,11 +66,11 @@ enum ChannelType {
 // ============================================
 
 model Business {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        Int      @id @default(autoincrement())
   name      String
   subdomain String?  @unique
   isActive  Boolean  @default(true)
-  settings  Json?
+  settings  Json? @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -111,7 +111,7 @@ model User {
 model BusinessUser {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   business   Business @relation(fields: [businessId], references: [id])
-  businessId String   @db.Uuid
+  businessId Int
   user       User     @relation(fields: [userId], references: [id])
   userId     String   @db.Uuid
   role       String   @default("member")
@@ -127,12 +127,11 @@ model BusinessUser {
 model Visitor {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   business   Business @relation(fields: [businessId], references: [id])
-  businessId String   @db.Uuid
+  businessId Int
 
   // Identificadores únicos
-  visitorId   String  @unique
+  visitorId   String
   fingerprint String?
-  sessionId   String?
 
   // Información del dispositivo
   userAgent         String?
@@ -161,7 +160,7 @@ model Visitor {
   lastActivityAt      DateTime? // Corregido: lastActivity -> lastActivityAt
   sessionsCount       Int       @default(1)
   totalTimeOnSite     Int       @default(0)
-  pagesVisited        Json?     // Almacena un array de strings
+  pagesVisited        Json?     @default("{}") // Almacena un array de strings
   pageViews           Int       @default(0)
   scrollDepthMax      Int?      @default(0) // Añadido
   maxScrollPercentage Int?      @default(0)
@@ -172,7 +171,7 @@ model Visitor {
   firstCampaign String?
   firstReferrer String?
   referrer      String? // Añadido
-  utmParams     Json?
+  utmParams     Json? @default("{}")
 
   // Engagement y calidad
   hasHighEngagement Boolean @default(false)
@@ -191,19 +190,20 @@ model Visitor {
 
   @@index([businessId])
   @@index([fingerprint])
-  @@index([sessionId])
   @@index([clientIP])
   @@index([createdAt])
   @@index([lastActivityAt])
+  @@unique([visitorId, businessId]) // Un visitante es único por negocio
   @@map("visitors")
 }
 
 model Session {
-  id         String   @id @db.Uuid
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId  String   @unique
   visitor    Visitor  @relation(fields: [visitorId], references: [id])
   visitorId  String   @db.Uuid
   business   Business @relation(fields: [businessId], references: [id])
-  businessId String   @db.Uuid
+  businessId Int
 
   startedAt DateTime  @default(now())
   endedAt   DateTime?
@@ -233,8 +233,8 @@ model Session {
   // Actividad
   entryUrl          String?
   exitUrl           String?
-  pagesViewed       Json?     // Almacena un array de strings
-  pagesVisited      Json?     // Almacena un array de strings
+  pagesViewed       Int       @default(1) // Número de páginas vistas en la sesión
+  pagesVisited      Json?     @default("{}") // Almacena un array de strings
   lastPageViewedUrl String?
   lastActivityAt    DateTime?
   scrollDepthMax    Int?      @default(0)
@@ -250,7 +250,7 @@ model Session {
   gclid       String?
 
   // Análisis IA
-  aiAnalysis Json?
+  aiAnalysis Json? @default("{}")
 
   // Auditoría
   createdAt DateTime @default(now())
@@ -269,7 +269,7 @@ model Session {
 model TrackingEvent {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   business   Business @relation(fields: [businessId], references: [id])
-  businessId String   @db.Uuid
+  businessId Int
   visitor    Visitor  @relation(fields: [visitorId], references: [id])
   visitorId  String   @db.Uuid
   session    Session  @relation(fields: [sessionId], references: [id])
@@ -293,14 +293,14 @@ model TrackingEvent {
   targetClass   String? // Añadido
   targetText    String?
   targetType    String?
-  targetClasses Json? // Almacena un array de strings
+  targetClasses Json? @default("{}") // Almacena un array de strings
   eventValue    Float?
 
   // Metadata específica del evento
-  metadata    Json?
-  elementInfo Json?
-  eventData   Json?
-  eventDetail Json?
+  metadata    Json? @default("{}")
+  elementInfo Json? @default("{}")
+  eventData   Json? @default("{}")
+  eventDetail Json? @default("{}")
 
   // Datos de conversión
   conversionType      String?
@@ -310,10 +310,10 @@ model TrackingEvent {
 
   // Datos de formularios
   formId                  String?
-  formFields              Json?
-  formErrors              Json?
+  formFields              Json? @default("{}")
+  formErrors              Json? @default("{}")
   formEmptyFields         Int?
-  formEmptyRequiredFields Json?
+  formEmptyRequiredFields Json? @default("{}")
   formIsValid             Boolean?
   formWillSubmit          Boolean?
 
@@ -353,7 +353,7 @@ model TrackingEvent {
 model Contact {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   business   Business @relation(fields: [businessId], references: [id])
-  businessId String   @db.Uuid
+  businessId Int
 
   // Información personal
   salutation String?
@@ -401,7 +401,7 @@ model Contact {
   timezone String?
 
   // Datos personalizados
-  customFields Json?
+  customFields Json? @default("{}")
 
   // Auditoría
   createdBy String?
@@ -431,13 +431,13 @@ model Contact {
 model Lead {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   business   Business @relation(fields: [businessId], references: [id])
-  businessId String   @db.Uuid
+  businessId Int
 
   // Referencias importantes
   visitorId String   @db.Uuid
   visitor   Visitor  @relation("VisitorToLead", fields: [visitorId], references: [id])
   sessionId String? @db.Uuid
-  session   Session? @relation("SessionToLead", fields: [sessionId], references: [id])
+  session   Session? @relation(name: "SessionToLead", fields: [sessionId], references: [id])
 
   // Identificadores
   formId   String?
@@ -498,7 +498,7 @@ model Lead {
   channelStatuses ChannelStatus[]
 
   // Datos personalizados
-  customFields Json?
+  customFields Json? @default("{}")
 
   // Auditoría
   createdBy String?
@@ -534,7 +534,7 @@ model Interaction {
   lead      Lead?    @relation(fields: [leadId], references: [id])
   leadId    String?  @db.Uuid
   business  Business @relation(fields: [businessId], references: [id])
-  businessId String  @db.Uuid
+  businessId Int
 
   // Detalles de interacción
   type        String
@@ -553,7 +553,7 @@ model Interaction {
   // Tracking
   source   String?
   sourceId String?
-  metadata Json?
+  metadata Json? @default("{}")
 
   // Auditoría
   createdBy String?
@@ -573,7 +573,7 @@ model Interaction {
 model Activity {
   id         String   @id @default(uuid()) @db.Uuid
   business   Business @relation(fields: [businessId], references: [id])
-  businessId String   @db.Uuid
+  businessId Int
 
   // Tipo y categoría
   type         String // Corregido: activityType -> type
@@ -592,9 +592,9 @@ model Activity {
   // Datos de actividad
   title       String?
   description String?  @db.Text
-  pageInfo    Json?
-  metadata    Json?
-  details     Json? // Añadido
+  pageInfo    Json? @default("{}")
+  metadata    Json? @default("{}")
+  details     Json? @default("{}") // Añadido
 
   // Creador/origen
   createdBy String? @db.Uuid
@@ -615,7 +615,7 @@ model Activity {
 model ChannelStatus {
   id         String   @id @default(uuid()) @db.Uuid
   business   Business @relation(fields: [businessId], references: [id])
-  businessId String   @db.Uuid
+  businessId Int
 
   // Referencias a entidades
   leadId    String?  @db.Uuid
@@ -636,7 +636,7 @@ model ChannelStatus {
   lastResponseDate DateTime?
 
   // Metadata
-  metadata Json?
+  metadata Json? @default("{}")
 
   // Auditoría
   createdAt DateTime  @default(now())
@@ -652,7 +652,7 @@ model ChannelStatus {
 model CustomField {
   id         String   @id @default(uuid()) @db.Uuid
   business   Business @relation(fields: [businessId], references: [id])
-  businessId String   @db.Uuid
+  businessId Int
 
   // Referencias polimórficas
   entityType String
@@ -683,14 +683,14 @@ model CustomField {
 model LeadScore {
   id         String   @id @default(uuid()) @db.Uuid
   business   Business @relation(fields: [businessId], references: [id])
-  businessId String   @db.Uuid
+  businessId Int
   lead       Lead     @relation(fields: [leadId], references: [id])
   leadId     String   @db.Uuid
 
   // Detalles del scoring
   behavior  String
   points    Int
-  metadata  Json?
+  metadata  Json? @default("{}")
   createdAt DateTime @default(now())
 
   @@index([leadId])

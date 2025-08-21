@@ -4,7 +4,8 @@
  * Versión robusta que combina las mejoras del sistema Innova con la infraestructura CRM
  */
 
-import { TrackerConfig, ApiResponse, HealthCheckResponse, DEFAULT_CONFIG } from '../types';
+import { TrackerConfig, ApiResponse, HealthCheckResponse } from '../types';
+import { DEFAULT_CONFIG } from '../config/defaults';
 
 interface QueuedData {
   id: string;
@@ -33,8 +34,8 @@ export class DataService {
     lastFailedRequest: null as string | null
   };
 
-  constructor(config: TrackerConfig) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+  constructor(config: Required<TrackerConfig>) {
+    this.config = config;
     this.setupNetworkMonitoring();
     this.loadQueueFromStorage();
   }
@@ -287,7 +288,7 @@ export class DataService {
       headers: {
         'Content-Type': 'application/json',
         'X-Tracking-Client': 'innova-tracking-framework-v2.0',
-        'X-Business-ID': this.config.businessId
+        'X-Business-ID': this.config.businessId.toString()
       }
     });
 

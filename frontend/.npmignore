@@ -1,0 +1,17 @@
+src/
+test/
+*.tgz
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+node_modules/
+coverage/
+.nyc_output/
+.env
+.env.local
+.env.*.local
+dev-server.js
+tsup.config.ts
+tsconfig.json

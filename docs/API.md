@@ -26,15 +26,14 @@ El **InnovaTracker** es la librería que se integra en el frontend de tu aplicac
 Para comenzar, primero debes crear una instancia del tracker. Esto se hace a través de la función `createInnovaTracker`, que devuelve la instancia que usarás para todas las interacciones.
 
 ```javascript
-import { createInnovaTracker } from '@innova-marketing/tracking-crm-framework';
+import { createInnovaTracker } from '@tracking-crm/client';
 
 const tracker = createInnovaTracker({
   businessId: 'TU_BUSINESS_ID', // Reemplaza con el ID de tu negocio
   baseUrl: 'http://localhost:3001', // URL de tu backend de tracking
-  debug: true // Activa logs en la consola para depuración
+  debug: true, // Activa logs en la consola para depuración
+  autoStart: true // El tracking comienza automáticamente
 });
-
-// El tracking de sesión y page view inicial comienza automáticamente.
 ```
 
 **Parámetros de Configuración:**
@@ -45,51 +44,28 @@ const tracker = createInnovaTracker({
 
 ### 2. Métodos Principales
 
-Una vez inicializado, el objeto `tracker` expone los siguientes métodos:
+Una vez inicializado, el objeto `tracker` expone una API simple y potente:
 
-#### Eventos de Tracking
-
--   **`trackPageView(customData?: object)`**: Registra una vista de página. Se llama automáticamente al inicio, pero puede ser invocado manualmente en aplicaciones de página única (SPA) al cambiar de ruta.
+-   **`trackPageView(pageData: { page: string; title: string })`**: Registra una vista de página. Es ideal para aplicaciones de página única (SPA) al cambiar de ruta.
     ```javascript
-    // Ejemplo para una SPA (React, Vue, Angular)
     tracker.trackPageView({ page: '/nueva-ruta', title: 'Nueva Página' });
     ```
 
--   **`trackEvent(eventType: string, eventData: object)`**: El método más versátil. Permite registrar cualquier tipo de evento personalizado.
+-   **`trackEvent(eventName: string, eventData: object)`**: El método más versátil. Permite registrar cualquier tipo de evento personalizado, como clics en botones, reproducciones de video, etc.
     ```javascript
-    tracker.trackEvent('video_played', { videoId: 'video-123', duration: 180 });
+    tracker.trackEvent('cta_click', { ctaId: 'hero-cta', ctaText: 'Comprar Ahora' });
     ```
 
 -   **`captureLead(leadData: object)`**: Envía un evento de conversión de lead. Este es un evento de alta prioridad y se envía inmediatamente al backend.
     ```javascript
-    tracker.captureLead({
-      formId: 'contact-form',
-      email: 'cliente@example.com',
-      name: 'John Doe'
-    });
+    tracker.captureLead({ formId: 'contact-form', email: 'cliente@example.com' });
     ```
 
-#### Métodos de Conveniencia
-
--   **`trackCTA(ctaData: object)`**: Un atajo para registrar un clic en un Call-to-Action.
-    ```javascript
-    // Asociar a un evento de clic de un botón
-    const ctaButton = document.getElementById('hero-cta');
-    ctaButton.addEventListener('click', () => {
-      tracker.trackCTA({ ctaId: 'hero-cta', ctaText: 'Comprar Ahora' });
-    });
-    ```
-
--   **`trackFormInteraction(formData: object)`**: Registra una interacción con un formulario (ej. focus en un campo).
-    ```javascript
-    tracker.trackFormInteraction({ formId: 'register-form', fieldName: 'email' });
-    ```
-
-#### Control del Tracker
-
--   **`startTracking()`**: Inicia (o reanuda) el tracking de actividad automática (scroll, clicks, etc.).
--   **`stopTracking()`**: Pausa el tracking de actividad automática.
 -   **`flushEvents()`**: Fuerza el envío inmediato de todos los eventos acumulados en el buffer. Útil antes de que el usuario abandone la página.
+
+-   **`getStats()`**: Devuelve un objeto con estadísticas de la sesión actual (sessionId, visitorId, etc.).
+
+-   **`healthCheck()`**: Realiza una comprobación de estado contra el backend para verificar la conectividad.
 
 ---
 
@@ -99,65 +75,29 @@ Estos son los endpoints principales para la recolección de datos de actividad.
 
 ### 1. Endpoint Principal: Eventos en Lote (Batch Events)
 
-**Endpoint:** `POST /api/track/batch-events`
+**Endpoint:** `POST /api/v1/track/event`
 
-Este es el endpoint principal y más eficiente para enviar datos. Permite agrupar múltiples eventos de tracking en una sola solicitud HTTP, reduciendo la sobrecarga de red. El backend soporta dos formatos de payload: el **moderno (recomendado)** y el **legacy (obsoleto)**.
+Este es el endpoint principal y más eficiente para enviar datos. Permite agrupar múltiples eventos de tracking en una sola solicitud HTTP, reduciendo la sobrecarga de red.
 
-#### Formato de Payload (Moderno vs. Legacy)
-
-**A. Formato Moderno (Recomendado)**
-
-Este es el formato preferido para todas las nuevas implementaciones. Es una estructura plana y directa.
-
-**Request Body (Moderno):**
-```json
-{
-  "type": "batch_events",
-  "sessionData": {
-    "sessionId": "session_1234567890_abc123",
-    "visitorId": "visitor_1234567890_def456",
-    "businessId": "00000000-0000-0000-0000-000000000001",
-    "startedAt": "2024-01-15T10:30:00.000Z",
-    "pageInfo": {
-      "url": "https://ejemplo.com",
-      "title": "Página Principal"
-    }
-  },
-  "events": [
-    {
-      "eventType": "page_view",
-      "pageUrl": "https://ejemplo.com",
-      "timestamp": "2024-01-15T10:30:00.000Z"
-    },
-    {
-      "eventType": "cta_click",
-      "pageUrl": "https://ejemplo.com",
-      "timestamp": "2024-01-15T10:30:05.000Z",
-      "eventData": {
-        "ctaId": "hero-button",
-        "ctaText": "Comenzar Ahora"
-      }
-    }
-  ]
-}
-```
-
-**B. Formato Legacy (Obsoleto)**
-
-Este formato se mantiene únicamente por retrocompatibilidad con clientes antiguos. **No se recomienda su uso en nuevas implementaciones.** La principal diferencia es que todo el contenido está anidado dentro de un objeto `body`.
-
-**Request Body (Legacy):**
+**Request Body:**
 ```json
 {
   "body": {
     "session": {
-      "sessionId": "session_1234567890_abc123",
-      "visitorId": "visitor_1234567890_def456"
+      "sessionId": "uuid-de-la-sesion",
+      "visitorId": "uuid-del-visitante",
+      "businessId": "uuid-del-negocio",
+      "pageInfo": { /* ... */ },
+      "deviceInfo": { /* ... */ }
     },
     "events": [
       {
         "eventType": "page_view",
-        "pageUrl": "https://ejemplo.com"
+        "metadata": { "page": "/home" }
+      },
+      {
+        "eventType": "cta_click",
+        "metadata": { "ctaId": "hero-button" }
       }
     ]
   }
@@ -178,21 +118,14 @@ Este formato se mantiene únicamente por retrocompatibilidad con clientes antigu
 
 ### 2. Heartbeat de Sesión
 
-**Endpoint:** `POST /api/track/heartbeat`
+**Endpoint:** `POST /api/v1/track/heartbeat`
 
-Mantiene una sesión activa y actualiza las métricas de comportamiento del usuario en tiempo real. El cliente frontend envía esto automáticamente.
+Mantiene una sesión activa. El cliente frontend puede enviar esto periódicamente para indicar que el usuario sigue activo en la página.
 
 **Request Body:**
 ```json
 {
-  "sessionId": "550e8400-e29b-41d4-a716-446655440000",
-  "visitorId": "550e8400-e29b-41d4-a716-446655440001",
-  "businessId": "00000000-0000-0000-0000-000000000001",
-  "userBehavior": {
-    "timeOnSite": 120,
-    "scrollDepthMax": 85,
-    "isActive": true
-  }
+  "sessionId": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
@@ -200,28 +133,24 @@ Mantiene una sesión activa y actualiza las métricas de comportamiento del usua
 ```json
 {
   "success": true,
-  "message": "Heartbeat procesado correctamente",
-  "data": {
-    "sessionId": "550e8400-e29b-41d4-a716-446655440000",
-    "status": "active"
-  }
+  "message": "Heartbeat recibido"
 }
 ```
 
 ### 3. Finalizar Sesión
 
-**Endpoint:** `POST /api/track/session-end`
+**Endpoint:** `POST /api/v1/track/session-end`
 
 Marca explícitamente el final de una sesión. Esto es útil para asegurar que la duración y las métricas finales se calculen con precisión, especialmente cuando un usuario cierra la pestaña del navegador.
 
 **Request Body:**
 ```json
 {
-  "sessionId": "session_1234567890_abc123",
-  "endedAt": "2024-01-15T11:00:00.000Z",
+  "sessionId": "550e8400-e29b-41d4-a716-446655440000",
   "finalMetrics": {
-      "totalEvents": 15,
-      "timeOnSite": 300
+    "duration": 300,
+    "maxScroll": 85,
+    "clicks": 15
   }
 }
 ```
@@ -230,7 +159,7 @@ Marca explícitamente el final de una sesión. Esto es útil para asegurar que l
 ```json
 {
     "success": true,
-    "message": "Sesión finalizada correctamente"
+    "message": "Session end recibido"
 }
 ```
 
@@ -525,7 +454,7 @@ const payload = {
   ]
 };
 
-const response = await fetch('http://localhost:3001/api/track/batch-events', {
+const response = await fetch('http://localhost:3001/api/v1/track/event', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
@@ -553,7 +482,7 @@ const sendTrackingEvent = async () => {
   };
 
   try {
-    const response = await fetch('http://localhost:3001/api/track/batch-events', {
+    const response = await fetch('http://localhost:3001/api/v1/track/event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -589,7 +518,7 @@ export default {
       };
 
       try {
-        const response = await this.$axios.post('http://localhost:3001/api/track/batch-events', payload);
+        const response = await this.$axios.post('http://localhost:3001/api/v1/track/event', payload);
         console.log('Tracking event sent:', response.data);
       } catch (error) {
         console.error('Error sending tracking event:', error);

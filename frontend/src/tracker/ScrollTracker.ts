@@ -4,7 +4,8 @@
  * Versión optimizada que combina performance con precisión de datos
  */
 
-import { TrackerConfig, DEFAULT_CONFIG } from '../types';
+import { TrackerConfig } from '../types';
+import { DEFAULT_CONFIG } from '../config/defaults';
 
 interface ScrollZone {
   zone: number;
@@ -60,8 +61,8 @@ export class ScrollTracker {
   private onScrollChangeCallback: ((stats: ScrollStats) => void) | null = null;
   private onZoneChangeCallback: ((zone: number, stats: ScrollZone) => void) | null = null;
 
-  constructor(config: TrackerConfig) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+  constructor(config: Required<TrackerConfig>) {
+    this.config = config;
     this.initializeZones();
   }
 

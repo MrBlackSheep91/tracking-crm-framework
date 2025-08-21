@@ -301,53 +301,6 @@ export type SessionEndReason =
 
 export type BufferType = 'immediate' | 'batch' | 'session_end';
 
-// ==================== CONFIGURACIONES POR DEFECTO ====================
-
-export const DEFAULT_CONFIG: Required<TrackerConfig> = {
-  businessId: '00000000-0000-0000-0000-000000000001',
-  baseUrl: 'http://localhost:3001',
-  debug: false,
-  
-  // Intervalos optimizados
-  heartbeatInterval: 15000,       // 15 segundos
-  inactivityTimeout: 30000,       // 30 segundos
-  activityUpdateInterval: 2000,   // 2 segundos
-  scrollUpdateInterval: 1000,     // 1 segundo
-  
-  // Configuración de red
-  eventBufferSize: 10,
-  maxRetries: 3,
-  retryDelay: 1000,
-  
-  // Funcionalidades
-  scrollZoneSize: 10,             // 10% por zona
-  enableScrollTracking: true,
-  enableActivityMonitoring: true,
-  autoStart: true,
-  
-  // Endpoints actualizados para backend CRM
-  endpoints: {
-    // Nuevos endpoints V1 (Recomendados)
-    sessionStart: '/api/start-session',
-    sessionEnd: '/api/end-session',
-    trackEvent: '/api/track-event',
-    batchEvents: '/api/batch-events',
-    heartbeat: '/api/heartbeat',
-
-    // Sistema/Métricas
-    health: '/api/health',
-    metrics: '/api/metrics',
-    metricsRealtime: '/api/metrics/realtime',
-    metricsDashboard: '/api/metrics/dashboard'
-  },
-  
-  // Callbacks vacíos
-  onSessionStart: () => {},
-  onSessionEnd: () => {},
-  onEventTrack: () => {},
-  onError: () => {}
-};
-
 // ==================== CONSTANTES DE EVENTOS ====================
 
 export const EVENT_CATEGORIES = {
