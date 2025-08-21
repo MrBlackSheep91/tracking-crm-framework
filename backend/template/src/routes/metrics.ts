@@ -21,8 +21,8 @@ function validateBusinessId(req: Request, res: Response, next: any) {
     });
   }
 
+  // Validar que sea un número
   const businessId = parseInt(businessIdStr as string, 10);
-
   if (isNaN(businessId)) {
     return res.status(400).json({
       success: false,
@@ -31,7 +31,7 @@ function validateBusinessId(req: Request, res: Response, next: any) {
     });
   }
   
-  res.locals.businessId = businessId;
+  res.locals.businessId = businessId; // Guardar como number
   next();
 }
 
@@ -43,7 +43,7 @@ router.get('/aggregated/:businessId', validateBusinessId, async (req: Request, r
   try {
     console.log('📊 [METRICS AGGREGATED] Solicitando métricas agregadas...');
     
-    const businessId = res.locals.businessId as number; // Ya validado por middleware
+    const businessId = res.locals.businessId as number; // Ya validado como número por middleware
     const period = (req.query.period as 'hour' | 'day' | 'week' | 'month') || 'day';
     const fromDate = req.query.from ? new Date(req.query.from as string) : undefined;
     const toDate = req.query.to ? new Date(req.query.to as string) : undefined;
@@ -81,7 +81,7 @@ router.get('/realtime/:businessId', validateBusinessId, async (req: Request, res
   try {
     console.log('⚡ [METRICS REALTIME] Solicitando stats en tiempo real...');
     
-    const businessId = res.locals.businessId as number; // Ya validado por middleware
+    const businessId = res.locals.businessId as number; // Ya validado como número por middleware
     const stats = await metricsService.getRealtimeStats(businessId);
 
     return res.status(200).json({
@@ -110,7 +110,7 @@ router.get('/historical/:businessId/:metric', validateBusinessId, async (req: Re
   try {
     console.log('📈 [METRICS HISTORICAL] Solicitando métricas históricas...');
     
-    const businessId = res.locals.businessId as number; // Ya validado por middleware
+    const businessId = res.locals.businessId as number; // Ya validado como número por middleware
     const metric = req.params.metric as 'visitors' | 'sessions' | 'pageViews' | 'events';
     const period = (req.query.period as 'hour' | 'day' | 'week') || 'day';
     const days = parseInt(req.query.days as string) || 7;
@@ -162,7 +162,7 @@ router.get('/historical/:businessId/:metric', validateBusinessId, async (req: Re
 // Endpoint con businessId como query param (para compatibilidad)
 router.get('/dashboard', async (req: Request, res: Response) => {
   try {
-    console.log('🎛️ [METRICS DASHBOARD] Solicitando datos completos de dashboard...');
+    console.log('📊 [METRICS DASHBOARD] Solicitando datos completos de dashboard...');
     
     const businessIdStr = req.query.businessId as string;
     const visitorId = req.query.visitorId as string;
@@ -171,13 +171,14 @@ router.get('/dashboard', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'businessId es requerido' });
     }
 
+    // Validar que sea un número
     const businessId = parseInt(businessIdStr, 10);
     if (isNaN(businessId)) {
       return res.status(400).json({ success: false, message: 'businessId debe ser un número válido' });
     }
 
     if (visitorId) {
-      const visitor = await metricsService.getVisitorMetrics(visitorId);
+      const visitor = await metricsService.getVisitorMetrics(visitorId, businessId);
       return res.status(200).json({
         success: true,
         message: 'Métricas del visitor obtenidas correctamente',
@@ -216,9 +217,9 @@ router.get('/dashboard', async (req: Request, res: Response) => {
 
 router.get('/dashboard/:businessId', validateBusinessId, async (req: Request, res: Response) => {
   try {
-    console.log('🎛️ [METRICS DASHBOARD] Solicitando datos completos de dashboard...');
+    console.log('📊 [METRICS DASHBOARD] Solicitando datos completos de dashboard...');
     
-    const businessId = res.locals.businessId as number; // Ya validado por middleware
+    const businessId = res.locals.businessId as number; // Ya validado como número por middleware
     
     // Obtener todas las métricas en paralelo
     const [
@@ -274,7 +275,7 @@ router.get('/engagement/:businessId', validateBusinessId, async (req: Request, r
   try {
     console.log('💡 [METRICS ENGAGEMENT] Solicitando métricas de engagement...');
     
-    const businessId = res.locals.businessId as number; // Ya validado por middleware
+    const businessId = res.locals.businessId as number; // Ya validado como número por middleware
     const period = (req.query.period as 'day' | 'week' | 'month') || 'day';
     
     const metrics = await metricsService.getAggregatedMetrics(businessId, period);
@@ -321,7 +322,7 @@ router.get('/engagement/:businessId', validateBusinessId, async (req: Request, r
 router.get('/health', async (req: Request, res: Response) => {
   try {
     // Test básico de conectividad
-    const testBusinessId = 1; // Usar un ID numérico para la prueba
+    const testBusinessId = 1; // Usar un ID de prueba
     await metricsService.getRealtimeStats(testBusinessId);
 
     return res.status(200).json({
@@ -351,7 +352,7 @@ router.get('/export/:businessId', validateBusinessId, async (req: Request, res: 
   try {
     console.log('📤 [METRICS EXPORT] Exportando métricas...');
     
-    const businessId = res.locals.businessId as number; // Ya validado por middleware
+    const businessId = res.locals.businessId as number; // Ya validado como número por middleware
     const format = (req.query.format as 'json' | 'csv') || 'json';
     const period = (req.query.period as 'day' | 'week' | 'month') || 'week';
     

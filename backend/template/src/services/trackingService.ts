@@ -12,7 +12,7 @@ const activityService = new ActivityService();
 interface SessionPayload {
   sessionId: string;
   visitorId: string;
-  businessId: string | number;
+  businessId: number; // Tipo correcto, se convierte a string en operaciones Prisma
   fingerprint: string;
   startedAt: string;
   deviceInfo: any;
@@ -32,7 +32,7 @@ interface EventData {
   eventName?: string;
   visitorId: string;
   sessionId: string;
-  businessId: string | number;
+  businessId: number; // Tipo correcto, se convierte a string en operaciones Prisma
   pageUrl: string;
   pageTitle?: string;
   referrer?: string;
@@ -55,7 +55,7 @@ interface TrackingPayload {
 
 interface BatchPayload {
   events: EventData[];
-  businessId: string | number;
+  businessId: number; // Tipo correcto, se convierte a string en operaciones Prisma
   visitorId: string;
   sessionId: string;
   fingerprint: string;
@@ -73,9 +73,10 @@ export const processTrackEvent = async (payload: BatchPayload): Promise<{ messag
   console.log('[trackingService] Iniciando processTrackEvent con payload:', JSON.stringify(payload, null, 2));
   console.log('--- [TRACKING] Iniciando procesamiento de batch ---');
   const { events, ...sessionData } = payload;
-  const businessId = typeof sessionData.businessId === 'string' ? parseInt(sessionData.businessId, 10) : sessionData.businessId;
+  const businessId = sessionData.businessId;
+  const businessIdStr = businessId.toString();
 
-  if (isNaN(businessId)) {
+  if (!businessId) {
     console.error('❌ [TRACKING] Error: businessId inválido.');
     throw new Error('Invalid businessId');
   }
@@ -149,7 +150,7 @@ export const processTrackEvent = async (payload: BatchPayload): Promise<{ messag
 
 async function findOrCreateSession(
   visitor: Visitor,
-  businessId: number,
+  businessId: number, 
   sessionData: SessionPayload,
   events: any[],
   tx: PrismaTransactionClient
@@ -203,7 +204,7 @@ async function findOrCreateSession(
     const totalActiveTime = (userBehavior.sessionDuration ?? 0) - (userBehavior.totalInactiveTime ?? 0);
     const newSession = await tx.session.create({
       data: {
-        sessionId, visitorId: visitor.id, businessId,
+        sessionId, visitorId: visitor.id, businessId: businessId.toString(), 
         startedAt: startedAt ? new Date(startedAt) : new Date(),
         lastActivityAt: new Date(),
         pagesViewed: 1 + pageViewEventsCount,
@@ -230,14 +231,15 @@ async function findOrCreateVisitor(
 ): Promise<Visitor> {
   console.log(`[findOrCreateVisitor] Buscando o creando visitante para visitorId: ${session.visitorId}`);
   const { visitorId, deviceInfo, ipLocation, pageInfo, fingerprint, userBehavior = {} } = session;
-  const businessId = typeof session.businessId === 'string' ? parseInt(session.businessId, 10) : session.businessId;
+  const businessId = session.businessId;
+  const businessIdStr = businessId.toString();
 
   // Calcular pageViewEventsCount
   const pageViewEventsCount = events.filter(e => e.eventType === 'page_view').length;
 
   // Validar que el business existe antes de crear visitor
   const business = await tx.business.findUnique({
-    where: { id: businessId }
+    where: { id: businessId.toString() }
   });
   
   if (!business) {
@@ -258,7 +260,7 @@ async function findOrCreateVisitor(
 
     console.log(`[findOrCreateVisitor] Verificando si existe el visitante: ${visitorId}`);
   const existingVisitor = await tx.visitor.findUnique({
-    where: { visitorId_businessId: { visitorId, businessId } },
+    where: { visitorId_businessId: { visitorId, businessId: businessId.toString() } },
   });
 
   const sessionDuration = userBehavior.sessionDuration || 0;
@@ -276,33 +278,41 @@ async function findOrCreateVisitor(
         engagementScore: userBehavior.engagementScore,
         maxScrollPercentage: userBehavior.maxScrollPercentage,
         pageViews: { increment: pageViewEventsCount },
-        sessionsCount: { increment: 1 }, // Incrementar contador de sesiones
+        sessionsCount: { increment: 1 }, 
       },
     });
   } else {
     console.log(`[findOrCreateVisitor] Visitante no encontrado. Creando nuevo visitante...`);
-    const newVisitorData = {
-      visitorId, businessId, fingerprint: fingerprint || 'not-provided',
-      firstReferrer: pageInfo?.referrer, firstSource: pageInfo?.utmSource, utmParams: pageInfo?.utmParams,
+    // Separar los datos en dos objetos: uno para la relación de business y otro para el resto
+    const visitorData = {
+      visitorId,
+      fingerprint: fingerprint || 'not-provided',
+      firstReferrer: pageInfo?.referrer, 
+      firstSource: pageInfo?.utmSource, 
+      utmParams: pageInfo?.utmParams,
       ...visitorDataForDb,
       totalTimeOnSite: sessionDuration,
-      sessionsCount: 1, // Start with 1 session
-      pageViews: pageViewEventsCount, // Count only pageview events in the batch
+      sessionsCount: 1, 
+      pageViews: pageViewEventsCount, 
+      business: {
+        connect: { id: businessId.toString() }
+      }
     };
-    console.log('[findOrCreateVisitor] Datos de nuevo visitante:', JSON.stringify(newVisitorData, null, 2));
+    console.log('[findOrCreateVisitor] Datos de nuevo visitante:', JSON.stringify(visitorData, null, 2));
     return tx.visitor.create({
-      data: newVisitorData,
+      data: visitorData,
     });
   }
 }
 
 export const handleConversion = async (event: EventData, visitor: Visitor, sessionId: string, tx: PrismaTransactionClient) => {
   console.log(`[handleConversion] Procesando conversión para email: ${event.eventData?.email}`);
-  const businessId = typeof event.businessId === 'string' ? parseInt(event.businessId, 10) : event.businessId;
+  const businessId = event.businessId;
+const businessIdStr = businessId.toString();
   try {
     // Validar que el business existe
     const business = await tx.business.findUnique({
-      where: { id: businessId }
+      where: { id: businessId.toString() }
     });
     
     if (!business) {
@@ -365,7 +375,7 @@ export const handleConversion = async (event: EventData, visitor: Visitor, sessi
     const session = await tx.session.findFirst({
       where: {
         sessionId: sessionId,
-        businessId: visitor.businessId
+        businessId: visitor.businessId.toString()
       }
     });
     const sessionDbId = session?.id || null;
@@ -375,7 +385,7 @@ export const handleConversion = async (event: EventData, visitor: Visitor, sessi
         businessId_email: {
           businessId: visitor.businessId,
           email: email,
-        },
+        }
       },
       update: {
         firstName: firstName,

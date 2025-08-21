@@ -66,7 +66,7 @@ export const visitorSchema = Joi.object({
 
 // Schema para model Session (Prisma compatible)
 export const sessionSchema = Joi.object({
-  // ID exacto como en Prisma
+  // IDs exactos como en Prisma
   id: Joi.string().uuid().required(),
   visitorId: Joi.string().uuid().required(),
   businessId: Joi.number().integer().required(),

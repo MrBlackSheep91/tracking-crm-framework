@@ -37,7 +37,7 @@ export type { PrismaSession, PrismaVisitor, PrismaTrackingEvent };
 export interface SessionData {
   sessionId: string;
   visitorId: string;
-  businessId: number;
+  businessId: string; // UUID
   startedAt: string; // ISO string
   endedAt?: string; // ISO string
   duration?: number; // en segundos
@@ -127,7 +127,7 @@ export interface BatchEventsPayload {
 export interface HeartbeatPayload {
   sessionId: string;
   visitorId: string;
-  businessId: number;
+  businessId: string; // UUID
   userBehavior: {
     sessionStartTime: string;
     lastActivity: string;
@@ -199,7 +199,7 @@ export interface PayloadMetadata {
 export interface LegacyPayload {
   sessionId?: string;
   visitorId?: string;
-  businessId?: number;
+  businessId?: string; // UUID
   eventType?: string;
   eventData?: any;
   timestamp?: string;

@@ -16,7 +16,7 @@ export class MetricsService {
   async getRealtimeStats(businessId: number) {
     const activeVisitors = await this.prisma.visitor.count({
       where: {
-        businessId,
+        businessId: businessId.toString(),
         lastVisitAt: {
           gte: new Date(Date.now() - 5 * 60 * 1000) // últimos 5 minutos
         }
@@ -53,7 +53,7 @@ export class MetricsService {
 
     const totalEvents = await this.prisma.trackingEvent.count({
       where: { 
-        businessId,
+        businessId: businessId.toString(),
         timestamp: {
           gte: startDate,
           lte: endDate
@@ -63,7 +63,7 @@ export class MetricsService {
 
     const totalVisitors = await this.prisma.visitor.count({
       where: { 
-        businessId,
+        businessId: businessId.toString(),
         createdAt: {
           gte: startDate,
           lte: endDate
@@ -73,7 +73,7 @@ export class MetricsService {
 
     const newVisitors = await this.prisma.visitor.count({
       where: { 
-        businessId,
+        businessId: businessId.toString(),
         firstVisitAt: {
           gte: startDate,
           lte: endDate
@@ -85,7 +85,7 @@ export class MetricsService {
 
     const totalSessions = await this.prisma.session.count({
       where: { 
-        businessId,
+        businessId: businessId.toString(),
         startedAt: {
           gte: startDate,
           lte: endDate
@@ -95,7 +95,7 @@ export class MetricsService {
 
     const sessions = await this.prisma.session.findMany({
       where: {
-        businessId,
+        businessId: businessId.toString(),
         startedAt: {
           gte: startDate,
           lte: endDate
@@ -132,21 +132,21 @@ export class MetricsService {
         total: totalEvents,
         pageViews: await this.prisma.trackingEvent.count({
           where: { 
-            businessId,
+            businessId: businessId.toString(),
             eventType: 'page_view',
             timestamp: { gte: startDate, lte: endDate }
           }
         }),
         interactions: await this.prisma.trackingEvent.count({
           where: { 
-            businessId,
+            businessId: businessId.toString(),
             eventType: { in: ['universal_click', 'form_interaction'] },
             timestamp: { gte: startDate, lte: endDate }
           }
         }),
         conversions: await this.prisma.trackingEvent.count({
           where: { 
-            businessId,
+            businessId: businessId.toString(),
             conversionSuccess: true,
             timestamp: { gte: startDate, lte: endDate }
           }
@@ -190,12 +190,12 @@ export class MetricsService {
     return data;
   }
 
-  async getVisitorMetrics(visitorId: string, businessId: number = 1) {
+  async getVisitorMetrics(visitorId: string, businessId: number) {
     const visitor = await this.prisma.visitor.findUnique({
       where: { 
         visitorId_businessId: {
           visitorId: visitorId,
-          businessId: businessId
+          businessId: businessId.toString()
         }
       },
       select: {
