@@ -1,0 +1,39 @@
+{
+  "name": "@innovamarketing/tracking-crm-framework", 
+  "version": "2.0.0",
+  "description": "Sistema completo de tracking CRM - Cliente frontend TypeScript",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "serve": "nodemon dev-server.js",
+    "test:e2e": "concurrently \"npm:dev\" \"npm:serve\"",
+    "test": "jest"
+  },
+  "keywords": [
+    "tracking",
+    "analytics",
+    "marketing",
+    "innova"
+  ],
+  "author": "Innova Marketing",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "concurrently": "^7.0.0",
+    "nodemon": "^2.0.0",
+    "tsup": "^6.0.0",
+    "typescript": "^4.0.0"
+  },
+  "dependencies": {
+    "uuid": "^9.0.0",
+    "express": "^4.18.0",
+    "cors": "^2.8.5"
+  },
+  "type": "module"
+}

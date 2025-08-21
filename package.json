@@ -1,0 +1,61 @@
+{
+  "name": "@innova-marketing/tracking-crm-framework",
+  "version": "1.0.0",
+  "description": "Sistema de tracking CRM modular y reutilizable para cualquier sitio web",
+  "main": "client/index.js",
+  "types": "client/index.d.ts",
+  "keywords": [
+    "tracking",
+    "crm",
+    "analytics",
+    "marketing",
+    "innova"
+  ],
+  "author": "Innova Marketing",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/innova-marketing/tracking-crm-framework"
+  },
+  "scripts": {
+    "dev": "docker-compose up -d",
+    "stop": "docker-compose down",
+    "build": "npm run build:client && npm run build:backend",
+    "build:client": "cd client && npm run build",
+    "build:backend": "cd backend/template && npm run build",
+    "test": "cd backend/template && npm test",
+    "test:all": "powershell -ExecutionPolicy Bypass -File ./test/run-all-tests.ps1",
+    "test:create-business": "cd backend/template && node ../../test/create-business.js",
+    "test:compatibility": "node test/test-compatibility-final.js",
+    "test:schema": "node test/test-schema-validation.js",
+    "test:heartbeat": "node test/test-heartbeat-complete.js",
+    "prisma:generate": "cd backend/template && npx prisma generate",
+    "prisma:migrate": "cd backend/template && npx prisma migrate dev",
+    "prisma:studio": "cd backend/template && npx prisma studio"
+  },
+  "files": [
+    "client/",
+    "backend/template/",
+    "test/",
+    "scripts/",
+    "config/",
+    "docker-compose.yml",
+    "README.md",
+    "ARCHITECTURE.md",
+    "docs/"
+  ],
+  "dependencies": {
+    "@prisma/client": "^6.14.0",
+    "axios": "^1.11.0",
+    "dotenv": "^17.2.1",
+    "uuid": "^11.1.0"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

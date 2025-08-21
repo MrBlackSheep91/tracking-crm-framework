@@ -1,0 +1,53 @@
+{
+  "name": "tracking-crm-backend",
+  "version": "1.0.0",
+  "description": "Backend for Tracking CRM Framework",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "dev": "nodemon -e ts --watch src --exec \"tsc && node dist/server.js\"",
+    "test": "jest --verbose --detectOpenHandles --forceExit",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "jest --testPathPattern=e2e --detectOpenHandles --forceExit",
+    "seed": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^5.x.x",
+    "axios": "^1.x.x",
+    "compression": "^1.x.x",
+    "cors": "^2.x.x",
+    "dotenv": "^16.x.x",
+    "express": "^4.x.x",
+    "express-rate-limit": "^7.x.x",
+    "helmet": "^7.x.x",
+    "joi": "^17.x.x",
+    "nodemon": "^3.x.x",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.x.x",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.x.x",
+    "@types/cors": "^2.x.x",
+    "@types/express": "^4.x.x",
+    "@types/jest": "^29.x.x",
+    "@types/joi": "^17.x.x",
+    "@types/lodash": "^4.17.20",
+    "@types/node": "^20.x.x",
+    "@types/supertest": "^6.x.x",
+    "@types/uuid": "^9.0.8",
+    "jest": "^29.x.x",
+    "lodash": "^4.17.21",
+    "prisma": "^5.x.x",
+    "supertest": "^6.x.x",
+    "ts-jest": "^29.x.x"
+  }
+}

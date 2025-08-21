@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tracker E2E Test</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    h1 { color: #333; }
+    #status { margin-top: 1rem; padding: 1rem; background-color: #f0f0f0; border-radius: 5px; }
+    button { padding: 0.5rem 1rem; margin-top: 1rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Página de Prueba E2E para InnovaTracker</h1>
+  <p>Abre la consola del navegador para ver los logs del tracker.</p>
+  <div id="status">Tracker no inicializado.</div>
+  <button id="custom-event-btn">Enviar Evento Personalizado</button>
+
+  <script type="module" src="./test-runner.js"></script>
+</body>
+</html>
